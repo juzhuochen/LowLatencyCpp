@@ -13,28 +13,28 @@
 namespace Common {
 template <typename T> class LFQueue final {
 public:
-  LFQueue(std::size_t num_elem) : num_elements_(num_elem) {
-    store_(num_elem, T());
+  explicit LFQueue(std::size_t num_elem) : m_num_elements(num_elem) {
+    m_store(num_elem, T());
   }
   
   // write to queue
-  auto getNextToWriteTo() noexcept { return &store_[next_write_index_]; }
+  auto getNextToWriteTo() noexcept { return &m_store[m_next_write_index]; }
   auto updateWriteIndex() noexcept {
-    next_write_index_ = (next_write_index_ + 1) % store_.size();
-    num_elements_++;
+    m_next_write_index = (m_next_write_index + 1) % m_store.size();
+    m_num_elements++;
   }
   // read from queue
   auto getNextToread() const noexcept -> const T * {
-    return (next_read_index_ == next_write_index_) ? nullptr
-                                                   : &store_[next_read_index_];
+    return (m_next_read_index == m_next_write_index) ? nullptr
+                                                   : &m_store[m_next_read_index];
   }
   auto updateReadIndex() {
-    next_read_index_ = (next_read_index_ + 1) % store_.size();
-    ASSERT(num_elements_ != 0,
+    m_next_read_index = (m_next_read_index + 1) % m_store.size();
+    ASSERT(m_num_elements != 0,
            "Read an invalid element in:" + std::to_string(pthread_self()));
-    num_elements_--;
+    m_num_elements--;
   }
-  auto size() const noexcept { return num_elements_.load(); }
+  auto size() const noexcept { return m_num_elements.load(); }
   LFQueue() = delete;
   LFQueue(const T &) = delete;
   LFQueue(const T &&) = delete;
@@ -42,10 +42,10 @@ public:
   LFQueue &operator=(const LFQueue &&) = delete;
 
 private:
-  std::vector<T> store_;
-  std::atomic<size_t> next_write_index_ = {0};
-  std::atomic<size_t> next_read_index_ = {0};
-  std::atomic<size_t> num_elements_ = {0};
+  std::vector<T> m_store;
+  std::atomic<size_t> m_next_write_index = {0};
+  std::atomic<size_t> m_next_read_index = {0};
+  std::atomic<size_t> m_num_elements = {0};
 };
 
 } // namespace Common

@@ -11,8 +11,8 @@ int main()
     MemPool<double> pod_pool(50);
     MemPool<Mystruct> struct_pool(50);
     for (auto i=0; i<50; ++i) {
-        auto p_ret=pod_pool.allocate(i);
-        auto s_ret= struct_pool.allocate(Mystruct{i,i+1,i+2});
+        auto *p_ret=pod_pool.allocate(i);
+        auto *s_ret= struct_pool.allocate(Mystruct{i,i+1,i+2});
         std::cout<<"pod element:"<<*p_ret<<" allocted at:"<<
             p_ret<<std::endl;
         std::cout<<"strcuct element:"<<s_ret->m_data[0]<<" , "<<

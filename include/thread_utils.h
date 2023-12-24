@@ -35,7 +35,7 @@ inline auto creatAndStartThread(int core_id, const std::string &name, T &&func,
     running = true;
     std::forward<T>(func)((std::forward<A>(args))...);
   };
-  auto t = new std::thread(thread_body);
+  auto *t = new std::thread(thread_body);
   while (!running &&
          !failed) { // until thread started running or has failed to start
     using namespace std::literals::chrono_literals;

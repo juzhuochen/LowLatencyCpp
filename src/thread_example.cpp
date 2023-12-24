@@ -15,9 +15,9 @@ auto dummyFunction(int a, int b, bool sleep) {
 int main() {
 
   using namespace Common;
-  auto t1 =
+  auto *t1 =
       creatAndStartThread(-1, "dummyFunction1", dummyFunction, 12, 21, false);
-  auto t2 =
+  auto *t2 =
       creatAndStartThread(1, "dummyFunction2", dummyFunction, 1, 21, true);
   t1->join();
   t2->join();
