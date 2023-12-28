@@ -1,8 +1,6 @@
 #pragma once
 #include <atomic>
-#include <cstddef>
 #include <iostream>
-#include <iterator>
 #include <pthread.h>
 #include <sched.h>
 #include <sys/syscall.h>
@@ -19,21 +17,21 @@ inline auto setThreadCore(int core_id) noexcept {
           0);
 }
 
-template <typename T, typename... A>
+template <typename T, typename... Args>
 inline auto creatAndStartThread(int core_id, const std::string &name, T &&func,
-                                A &&...args) noexcept {
+                                Args &&...args) noexcept {
   std::atomic<bool> running(false), failed(false);
   auto thread_body = [&] {
     if (core_id >= 0 && !setThreadCore(core_id)) {
       std::cerr << "Failed to set core affinity for " << name << " "
-                << pthread_self() << " to " << core_id << std::endl;
+                << pthread_self() << " to " << core_id << "\n";
       failed = true;
       return;
     }
     std::cout << "Set core affinity for " << name << " " << pthread_self()
-              << " to " << core_id << std::endl;
+              << " to " << core_id << "\n";
     running = true;
-    std::forward<T>(func)((std::forward<A>(args))...);
+    std::forward<T>(func)((std::forward<Args>(args))...);
   };
   auto *t = new std::thread(thread_body);
   while (!running &&

@@ -27,10 +27,7 @@ int main()
 
             pod_pool.deallocate(p_ret);
             struct_pool.deallocate(s_ret);
-
-        
         }
     }
-
     return 0;
 }
