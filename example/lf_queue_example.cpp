@@ -10,7 +10,7 @@ using namespace Common;
 auto consumeFunc(LFQueue<Mystruct> *lfq) {
     using namespace std::literals::chrono_literals;
     std::this_thread::sleep_for(1s);
-    while (lfq->size()) { //read from lfq
+    while (lfq->size()) { // read from lfq
         const auto *elem = lfq->getNextToread();
         lfq->updateReadIndex();
         std::cout << "consumeFunc read elememt: " << elem->m_data[0] << ", "

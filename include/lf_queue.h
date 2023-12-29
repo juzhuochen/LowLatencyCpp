@@ -22,7 +22,7 @@ class LFQueue final {
     }
     // read from queue
     auto getNextToread() const noexcept -> const T * {
-        return (size() ?  &m_store[m_next_read_index]:nullptr);
+        return (size() ? &m_store[m_next_read_index] : nullptr);
     }
     auto updateReadIndex() {
         m_next_read_index = (m_next_read_index + 1) % m_store.size();

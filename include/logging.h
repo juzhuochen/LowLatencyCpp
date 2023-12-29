@@ -43,8 +43,8 @@ struct LogElement {
 class Logger final {
     auto flushQueue() noexcept {
         while (m_running) {
-            for (auto next = m_queue.getNextToread(); m_queue.size() && next;
-                 next = m_queue.getNextToread()) {
+            for (const auto *next = m_queue.getNextToread();
+                 m_queue.size() && next; next = m_queue.getNextToread()) {
                 switch (next->m_type) {
                     case LogType::CHAR:
                         m_file << next->m_union.c;
@@ -100,6 +100,9 @@ class Logger final {
         m_logger_thread->join();
         m_file.close();
     }
+    Logger() = delete;
+    Logger(const Logger &) = delete;
+    Logger(const Logger &&) = delete;
 
   private:
     const std::string m_file_name;
