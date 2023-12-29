@@ -45,18 +45,40 @@ class Logger final {
         while (m_running) {
             for (auto next = m_queue.getNextToread(); m_queue.size() && next;
                  next = m_queue.getNextToread()) {
-                    switch (next->m_type) {
-                    case   LogType::CHAR:   ;break;
-                    case LogType::INTEGER:  ; break;
-                    case LogType::LONG_INTEGER: ;break;
-                    case LogType::LONG_LONG_INTEGER: ; break;
-                    case LogType::UNSIGNED_LONG_INTEGER: ; break;
-                    case LogType::UNSIGNED_LONG_LONG_INTEGER: ; break;
-                    case LogType::FLOAT: ; break;
-                    case LogType::DOUBLE: ; break;
-
-                    }
-                 }
+                switch (next->m_type) {
+                    case LogType::CHAR:
+                        m_file << next->m_union.c;
+                        break;
+                    case LogType::INTEGER:
+                        m_file << next->m_union.i;
+                        break;
+                    case LogType::LONG_INTEGER:
+                        m_file << next->m_union.l;
+                        break;
+                    case LogType::LONG_LONG_INTEGER:
+                        m_file << next->m_union.ll;
+                        break;
+                    case LogType::UNSIGNED_INTEGER:
+                        m_file << next->m_union.u;
+                        break;
+                    case LogType::UNSIGNED_LONG_INTEGER:
+                        m_file << next->m_union.ul;
+                        break;
+                    case LogType::UNSIGNED_LONG_LONG_INTEGER:
+                        m_file << next->m_union.ull;
+                        break;
+                    case LogType::FLOAT:
+                        m_file << next->m_union.f;
+                        break;
+                    case LogType::DOUBLE:
+                        m_file << next->m_union.d;
+                        break;
+                }
+                m_queue.updateReadIndex();
+                next = m_queue.getNextToread();
+            }
+            using namespace std::literals::chrono_literals;
+            std::this_thread::sleep_for(1ms);
         }
     }
     explicit Logger(std::string file_name)
@@ -66,6 +88,17 @@ class Logger final {
         m_logger_thread = creatAndStartThread(
             -1, "Common/Logger", [this]() { flushQueue(); });
         ASSERT(m_logger_thread != nullptr, "Failed to start Logger thread.");
+    }
+    ~Logger() {
+        std::cerr << "Flushing and closing logger for " << m_file_name
+                  << std::endl;
+        while (m_queue.size()) {
+            using namespace std::literals::chrono_literals;
+            std::this_thread::sleep_for(1s);
+        }
+        m_running = false;
+        m_logger_thread->join();
+        m_file.close();
     }
 
   private:
