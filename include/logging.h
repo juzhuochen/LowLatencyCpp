@@ -4,6 +4,7 @@
 #include "macros.h"
 #include "thread_utils.h"
 #include <atomic>
+#include <coroutine>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
@@ -41,6 +42,7 @@ struct LogElement {
     } m_union;
 };
 class Logger final {
+  public:
     auto flushQueue() noexcept {
         while (m_running) {
             for (const auto *next = m_queue.getNextToread();
@@ -100,9 +102,81 @@ class Logger final {
         m_logger_thread->join();
         m_file.close();
     }
+    auto pushValue(const LogElement &log_elem) noexcept {
+        *(m_queue.getNextToWriteTo()) = log_elem;
+        m_queue.updateWriteIndex();
+    }
+    auto pushValue(const char val) noexcept {
+        pushValue(LogElement{LogType::CHAR, {.c = val}});
+    }
+
+    auto pushValue(const int val) noexcept {
+        pushValue(LogElement{LogType::INTEGER, {.i = val}});
+    }
+    auto pushValue(const long val) noexcept {
+        pushValue(LogElement{LogType::LONG_INTEGER, {.l = val}});
+    }
+    auto pushValue(const long long val) noexcept {
+        pushValue(LogElement{LogType::LONG_LONG_INTEGER, {.ll = val}});
+    }
+    auto pushValue(const unsigned int val) noexcept {
+        pushValue(LogElement{LogType::UNSIGNED_INTEGER, {.u = val}});
+    }
+    auto pushValue(const unsigned long val) noexcept {
+        pushValue(LogElement{LogType::UNSIGNED_LONG_INTEGER, {.ul = val}});
+    }
+    auto pushValue(const unsigned long long val) noexcept {
+        pushValue(
+            LogElement{LogType::UNSIGNED_LONG_LONG_INTEGER, {.ull = val}});
+    }
+    auto pushValue(const float val) noexcept {
+        pushValue(LogElement{LogType::FLOAT, {.f = val}});
+    }
+    auto pushValue(const double val) noexcept {
+        pushValue(LogElement{LogType::DOUBLE, {.d = val}});
+    }
+    auto pushValue(const char *val) noexcept {
+        while (*val) {
+            pushValue(*val);
+            ++val;
+        }
+    }
+    auto pushValue(const std::string &val) noexcept { pushValue(val.c_str()); }
+
+    template<typename T, typename... Args>
+    auto log(const char *str, const T &val, Args... args) noexcept {
+        while (*str) {
+            if (*str == '%') {
+                if (UNLIKELY(*(str + 1) == '%')) {
+                    ++str;
+                } else {
+                    pushValue(val);
+                    log(str + 1, args...);
+                    return;
+                }
+            }
+            pushValue(*str++);
+        }
+        FATAL("extra  args privoided to log");
+    }
+    auto log(const char *str) noexcept {
+        while (*str) {
+            if (*str == '%') {
+                if (UNLIKELY(*(str + 1) == '%')) {
+                    ++str;
+                } else {
+                    FATAL("Missing args to log()");
+                }
+            }
+            pushValue(*str++);
+        }
+    }
+    
     Logger() = delete;
     Logger(const Logger &) = delete;
     Logger(const Logger &&) = delete;
+    Logger &operator=(const Logger &) = delete;
+    Logger &operator=(const Logger &&) = delete;
 
   private:
     const std::string m_file_name;
