@@ -4,15 +4,13 @@
 #include "macros.h"
 #include "thread_utils.h"
 #include <atomic>
-#include <coroutine>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
 #include <string>
 #include <thread>
-#include <utility>
 namespace Common {
-constexpr std::size_t LOG_QUEUE_SIZE = 8 * 1024 * 1024;
+constexpr std::size_t LOG_QUEUE_SIZE = static_cast<size_t>(8 * 1024 * 1024);
 enum class LogType : int8_t {
 
     CHAR = 0,
@@ -83,8 +81,9 @@ class Logger final {
             std::this_thread::sleep_for(1ms);
         }
     }
-    explicit Logger(std::string file_name)
-        : m_file_name(std::move(file_name)), m_queue(LOG_QUEUE_SIZE) {
+    explicit Logger(const std::string& file_name)
+        : m_file_name(file_name), m_queue(LOG_QUEUE_SIZE) {
+        
         m_file.open(file_name);
         ASSERT(m_file.is_open(), "Could not open log file" + file_name);
         m_logger_thread = creatAndStartThread(
