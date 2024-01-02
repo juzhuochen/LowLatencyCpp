@@ -18,16 +18,41 @@
 #include "logging.h"
 
 namespace Common {
-    
+struct SocketCfg {
+    std::string m_ip;
+    std::string m_iface;
+    int m_port = -1;
+    bool m_is_udp = false;
+    bool m_is_listening = false;
+    bool m_need_so_timestamp = false;
+    [[nodiscard]]auto toString() const {
+        std::stringstream ss;
+        ss << "SocketCfd[ip: " << m_ip << " iface: " << m_iface
+           << " port: " << m_port << " is_udp: " << m_is_udp
+           << " is_listening: " << m_is_listening
+           << " needs_SO_timestamp: " << m_need_so_timestamp << "]";
+        return ss.str();
+    }
+};
+
 constexpr int MaxTCPServerBackLog = 1024;
-auto getIfaceIP(const std::string &iface) -> std::string;
+auto getIfaceIP(const std::string &iface) -> std::string{
+    char buf[NI_MAXHOST]={'\0'};
+    ifaddrs* ifaddr=nullptr;
+    if(getifaddrs(&ifaddr)!=-1){
+        for (ifaddr* ifa=ifaddr; ifaddr; ifa=ifa->ifa_next) {
+        if(){
+
+        }
+        }
+    }
+}
 auto setNonBlocking(int fd) -> bool;
 auto setNoDelay(int fd) -> bool;
 auto setSOtimestamp(int fd) -> bool;
 auto wouldBlock() -> bool;
 auto setMcastTTL(int fd, int mcast_ttl) -> bool;
-auto setTTL(int fd,int ttl)
-    -> bool;
+auto setTTL(int fd, int ttl) -> bool;
 auto join(int fd, const std::string &ip, const std::string &iface, int port)
     -> bool;
 auto creatSocket(
