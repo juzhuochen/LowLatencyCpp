@@ -1,24 +1,23 @@
 #pragma once
+#include "time_utils.h"
+#include "logging.h"
+#include "macros.h"
+#include <arpa/inet.h>
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <cstring>
+#include <fcntl.h>
+#include <ifaddrs.h>
 #include <iostream>
-#include <string>
-#include <unordered_set>
-#include <sstream>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <arpa/inet.h>
-#include <ifaddrs.h>
-#include <fcntl.h>
-#include "time_utils.h"
-#include "macros.h"
-#include "logging.h"
+#include <sstream>
+#include <string>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace Common {
 struct SocketCfg {
@@ -88,28 +87,28 @@ inline auto join(int fd, const std::string &ip) -> bool {
         setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))
         != -1);
 }
-auto creatSocket(Logger &logger, const SocketCfg *socket_cfg) -> int {
+inline auto creatSocket(Logger &logger, const SocketCfg &socket_cfg) -> int {
     std::string time_str;
-    const auto ip = socket_cfg->m_ip.empty() ? getIfaceIP(socket_cfg->m_iface)
-                                             : socket_cfg->m_ip;
+    const auto ip = socket_cfg.m_ip.empty() ? getIfaceIP(socket_cfg.m_iface)
+                                             : socket_cfg.m_ip;
     logger.log(
         "%:% %() % cfg:%\n", __FILE__, __LINE__, __FUNCTION__,
-        Common::getCurrentTimeStr(&time_str), socket_cfg->toString());
+        Common::getCurrentTimeStr(&time_str), socket_cfg.toString());
 
-    const int input_flags = (socket_cfg->m_is_listening ? AI_PASSIVE : 0)
+    const int input_flags = (socket_cfg.m_is_listening ? AI_PASSIVE : 0)
                             | (AI_NUMERICHOST | AI_NUMERICSERV);
     const addrinfo hints{
         input_flags,
         AF_INET,
-        socket_cfg->m_is_udp ? SOCK_DGRAM : SOCK_STREAM,
-        socket_cfg->m_is_udp ? IPPROTO_UDP : IPPROTO_TCP,
+        socket_cfg.m_is_udp ? SOCK_DGRAM : SOCK_STREAM,
+        socket_cfg.m_is_udp ? IPPROTO_UDP : IPPROTO_TCP,
         0,
         0,
         nullptr,
         nullptr};
     addrinfo *result = nullptr;
     const auto rc = getaddrinfo(
-        ip.c_str(), std::to_string(socket_cfg->m_port).c_str(), &hints,
+        ip.c_str(), std::to_string(socket_cfg.m_port).c_str(), &hints,
         &result);
     ASSERT(
         !rc, "getaddrinfo() failed. error:" + std::string(gai_strerror(rc))
@@ -124,17 +123,17 @@ auto creatSocket(Logger &logger, const SocketCfg *socket_cfg) -> int {
         ASSERT(
             setNonBlocking(socket_fd),
             "setNonblocking() failed. errno: " + std::string(strerror(errno)));
-        if (!socket_cfg->m_is_udp) { // disable nagle for tcp
+        if (!socket_cfg.m_is_udp) { // disable nagle for tcp
             ASSERT(
                 disableNagle(socket_fd), "disableNagle() failed. errno: "
                                              + std::string(strerror(errno)));
         }
-        if (!socket_cfg->m_is_listening) {
+        if (!socket_cfg.m_is_listening) {
             ASSERT(
                 connect(socket_fd, rp->ai_addr, rp->ai_addrlen) != -1,
                 "connect() failed. errno: " + std::string(strerror(errno)));
         }
-        if (!socket_cfg->m_is_listening) {
+        if (!socket_cfg.m_is_listening) {
             ASSERT(
                 setsockopt(
                     socket_fd, SOL_SOCKET, SO_REUSEADDR,
@@ -142,31 +141,32 @@ auto creatSocket(Logger &logger, const SocketCfg *socket_cfg) -> int {
                 "setsockopt() SO_REUSEADDR failed. errno:"
                     + std::string(strerror(errno)));
         }
-        if (socket_cfg->m_is_listening) {
+        if (socket_cfg.m_is_listening) {
             const sockaddr_in addr{
-                AF_INET, htons(socket_cfg->m_port), {htonl(INADDR_ANY)}, {}};
+                AF_INET, htons(socket_cfg.m_port), {htonl(INADDR_ANY)}, {}};
             ASSERT(
                 bind(
                     socket_fd,
-                    socket_cfg->m_is_udp
+                    socket_cfg.m_is_udp
                         ? reinterpret_cast<const struct sockaddr *>(&addr)
                         : rp->ai_addr,
                     sizeof(addr))
                     == 0,
                 "bind() failed. errno:%" + std::string(strerror(errno)));
         }
-        if (!socket_cfg->m_is_udp
-            && socket_cfg->m_is_listening) { // listen for tcp
+        if (!socket_cfg.m_is_udp
+            && socket_cfg.m_is_listening) { // listen for tcp
             ASSERT(
                 listen(socket_fd, MaxTCPServerBackLog) == 0,
                 "listen() failed. errno:" + std::string(strerror(errno)));
         }
-        if (socket_cfg->m_need_so_timestamp) {
+        if (socket_cfg.m_need_so_timestamp) {
             ASSERT(
                 setSOtimestamp(socket_fd), "setSOtimestamp() failed. errno:"
                                                + std::string(strerror(errno)));
         }
     }
+    if (result) { freeaddrinfo(result); }
     return socket_fd;
 }
 
