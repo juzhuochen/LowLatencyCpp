@@ -81,9 +81,8 @@ class Logger final {
             std::this_thread::sleep_for(1ms);
         }
     }
-    explicit Logger(const std::string& file_name)
+    explicit Logger(const std::string &file_name)
         : m_file_name(file_name), m_queue(LOG_QUEUE_SIZE) {
-        
         m_file.open(file_name);
         ASSERT(m_file.is_open(), "Could not open log file" + file_name);
         m_logger_thread = creatAndStartThread(
@@ -170,7 +169,7 @@ class Logger final {
             pushValue(*str++);
         }
     }
-    
+
     Logger() = delete;
     Logger(const Logger &) = delete;
     Logger(const Logger &&) = delete;

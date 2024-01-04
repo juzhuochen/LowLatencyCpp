@@ -19,7 +19,7 @@ struct TCPSocket {
         int port,
         bool is_listening) -> int;
     auto sendAndRecv() noexcept -> bool;
-    auto send(const void* data,size_t len) noexcept -> void;
+    auto send(const void *data, size_t len) noexcept -> void;
 
     TCPSocket() = delete;
     TCPSocket(const TCPSocket &) = delete;

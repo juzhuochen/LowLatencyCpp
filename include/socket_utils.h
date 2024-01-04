@@ -90,7 +90,7 @@ inline auto join(int fd, const std::string &ip) -> bool {
 inline auto creatSocket(Logger &logger, const SocketCfg &socket_cfg) -> int {
     std::string time_str;
     const auto ip = socket_cfg.m_ip.empty() ? getIfaceIP(socket_cfg.m_iface)
-                                             : socket_cfg.m_ip;
+                                            : socket_cfg.m_ip;
     logger.log(
         "%:% %() % cfg:%\n", __FILE__, __LINE__, __FUNCTION__,
         Common::getCurrentTimeStr(&time_str), socket_cfg.toString());
@@ -108,8 +108,7 @@ inline auto creatSocket(Logger &logger, const SocketCfg &socket_cfg) -> int {
         nullptr};
     addrinfo *result = nullptr;
     const auto rc = getaddrinfo(
-        ip.c_str(), std::to_string(socket_cfg.m_port).c_str(), &hints,
-        &result);
+        ip.c_str(), std::to_string(socket_cfg.m_port).c_str(), &hints, &result);
     ASSERT(
         !rc, "getaddrinfo() failed. error:" + std::string(gai_strerror(rc))
                  + " errno: " + strerror(errno));
