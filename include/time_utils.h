@@ -1,3 +1,4 @@
+#pragma once
 #include <bits/chrono.h>
 #include <chrono>
 #include <cstdint>
