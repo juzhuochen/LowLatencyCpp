@@ -1,1 +1,1 @@
-# Low latency app dev
+This project aim to make the funcdational kits for low latency cpp program design
