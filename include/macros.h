@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+// this standardized in cpp20
 #define LIKELY(x)   __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
 
