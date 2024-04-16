@@ -59,10 +59,10 @@ class MemPool final {
         const auto initial_free_index = m_next_free_index;
         while (!m_store[m_next_free_index].m_is_free) {
             ++m_next_free_index;
-            if (UNLIKELY(m_next_free_index == m_store.size())) {
+            if (m_next_free_index == m_store.size()) [[unlikely]] {
                 m_next_free_index = 0; // make the pool circular
             }
-            if (UNLIKELY(initial_free_index == m_next_free_index)) {
+            if (initial_free_index == m_next_free_index) [[unlikely]] {
                 ASSERT(
                     initial_free_index != m_next_free_index,
                     "Memory pool out of space.");

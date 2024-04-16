@@ -41,9 +41,9 @@ class LFQueue final {
 
   private:
     std::vector<T> m_store;
-    std::atomic<size_t> m_next_write_index = {0};
-    std::atomic<size_t> m_next_read_index = {0};
-    std::atomic<size_t> m_num_elements = {0};
+    std::atomic<size_t> m_next_write_index{0};
+    std::atomic<size_t> m_next_read_index{0};
+    std::atomic<size_t> m_num_elements{0};
 };
 
 } // namespace Common

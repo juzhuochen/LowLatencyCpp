@@ -145,7 +145,7 @@ class Logger final {
     auto log(const char *str, const T &val, Args... args) noexcept {
         while (*str) {
             if (*str == '%') {
-                if (UNLIKELY(*(str + 1) == '%')) {
+                if ((*(str + 1) == '%')) [[unlikely]] {
                     ++str;
                 } else {
                     pushValue(val);
@@ -160,7 +160,7 @@ class Logger final {
     auto log(const char *str) noexcept {
         while (*str) {
             if (*str == '%') {
-                if (UNLIKELY(*(str + 1) == '%')) {
+                if ((*(str + 1) == '%')) [[unlikely]] {
                     ++str;
                 } else {
                     FATAL("Missing args to log()");
